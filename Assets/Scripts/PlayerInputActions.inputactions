@@ -16,9 +16,36 @@
                     "initialStateCheck": true
                 },
                 {
+                    "name": "Look",
+                    "type": "Value",
+                    "id": "89f8ce1f-473a-41c5-b4d6-bebf53bc36d3",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
                     "name": "Retract",
                     "type": "Button",
                     "id": "d0d1f221-33a4-4120-bb39-7c159ca86da0",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "VerticalModifier",
+                    "type": "Button",
+                    "id": "f5f82f3d-436c-406f-8c8e-24aec78580ca",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Escape",
+                    "type": "Button",
+                    "id": "bf75bbb6-961c-4e25-8b8f-5712bad00605",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -83,12 +110,45 @@
                 },
                 {
                     "name": "",
+                    "id": "e8964896-e975-47d7-9b38-da767ec67b53",
+                    "path": "<Mouse>/delta",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Look",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "0705a46e-18cd-467f-a43c-3b488616b4f0",
                     "path": "<Keyboard>/space",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Retract",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "400ecdfe-012b-44a7-a3ea-44c20831576e",
+                    "path": "<Keyboard>/leftShift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "VerticalModifier",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "f1234411-9791-40e6-9699-47558d7a1fbf",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Escape",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

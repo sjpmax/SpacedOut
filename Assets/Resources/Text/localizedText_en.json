@@ -1,0 +1,44 @@
+{
+  "items": [
+    {
+      "key": "tutorial_awakening",
+      "value": "Oh hey, you're awake! Welcome to your new worst nightmare."
+    },
+    {
+      "key": "tutorial_oxygen_explanation",
+      "value": "You'll notice your oxygen is running low. Thanks to me, I found water! Blue floating globs - probability 0.00000000000007676% repeating..."
+    },
+    {
+      "key": "tutorial_water_instructions",
+      "value": "I'm boring you, aren't I? Point is: jump off and grab blue water globs for oxygen. Don't die!"
+    },
+    {
+      "key": "tutorial_first_water",
+      "value": "Excellent! You're not completely hopeless. Keep going!"
+    },
+    {
+      "key": "tutorial_second_water",
+      "value": "Two down! One more and you'll understand the concept."
+    },
+    {
+      "key": "tutorial_complete",
+      "value": "Well done! You've grasped the basics. Now we need something more sustainable than my brilliant water-finding skills."
+    },
+    {
+      "key": "warning_low_oxygen",
+      "value": "60 seconds left! Those blue globs aren't going to collect themselves!"
+    },
+    {
+      "key": "warning_critical_oxygen",
+      "value": "30 seconds! I'd suggest panicking now."
+    },
+    {
+      "key": "game_over",
+      "value": "Well, that was predictable. You're dead. Try again?"
+    },
+    {
+      "key": "water_collected",
+      "value": "Water collected! +30 seconds of not dying."
+    }
+  ]
+}

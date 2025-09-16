@@ -3,29 +3,58 @@ using UnityEngine.InputSystem;
 
 public class DebrisSpawner : MonoBehaviour
 {
-    public GameObject debrisPrefab;
+    [Header("Debris Prefabs")]
+    public GameObject[] IceDebrisPrefabs;  // Array of white balls of ice
+    public GameObject[] metalDebrisPrefabs;  // Array of gray/orange metal
+
+    [Header("Spawn Settings")]
     public float spawnDistance = 50f;
     public float spawnInterval = 2f;
-    public float horizontalRange = 15f; // How far left/right
-    public float verticalRange = 10f;   // How far up/down
+    public float horizontalRange = 15f;
+    public float verticalRange = 10f;
+
+    [Header("Tutorial Settings")]
+    public bool tutorialMode = true; // Spawn mostly water during tutorial
 
     private Transform platform;
 
     void Start()
     {
-        platform = FindObjectOfType<PlatformMover>().transform;
+        platform = FindFirstObjectByType<PlatformMover>().transform;
         InvokeRepeating("SpawnDebris", 1f, spawnInterval);
     }
 
     void SpawnDebris()
     {
         Vector3 spawnPos = platform.position + Vector3.forward * spawnDistance;
-
-        // Scatter debris in a wide area around the platform's path
         spawnPos.x += Random.Range(-horizontalRange, horizontalRange);
         spawnPos.y += Random.Range(-verticalRange, verticalRange);
-        spawnPos.z += Random.Range(-5f, 5f); // A little depth variation too
+        spawnPos.z += Random.Range(-5f, 5f);
 
-        Instantiate(debrisPrefab, spawnPos, Random.rotation);
+        GameObject debrisToSpawn;
+
+        if (tutorialMode)
+        {
+            // 80% water, 20% metal during tutorial
+            if (Random.value < 0.8f)
+                debrisToSpawn = IceDebrisPrefabs[Random.Range(0, IceDebrisPrefabs.Length)];
+            else
+                debrisToSpawn = metalDebrisPrefabs[Random.Range(0, metalDebrisPrefabs.Length)];
+        }
+        else
+        {
+            // 50/50 split after tutorial
+            if (Random.value < 0.5f)
+                debrisToSpawn = IceDebrisPrefabs[Random.Range(0, IceDebrisPrefabs.Length)];
+            else
+                debrisToSpawn = metalDebrisPrefabs[Random.Range(0, metalDebrisPrefabs.Length)];
+        }
+
+        Instantiate(debrisToSpawn, spawnPos, Random.rotation);
+    }
+
+    public void EndTutorialMode()
+    {
+        tutorialMode = false;
     }
 }
