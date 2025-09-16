@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -13,8 +14,12 @@ public class DebrisSpawner : MonoBehaviour
     public float horizontalRange = 15f;
     public float verticalRange = 10f;
 
+    [Header("Size Variation")]
+    public float minScale = 0.5f;  // Smallest debris
+    public float maxScale = 1.5f;  // Largest debris
+
     [Header("Tutorial Settings")]
-    public bool tutorialMode = true; // Spawn mostly water during tutorial
+    public bool tutorialMode = true; // Spawn mostly ice during tutorial
 
     private Transform platform;
 
@@ -35,7 +40,7 @@ public class DebrisSpawner : MonoBehaviour
 
         if (tutorialMode)
         {
-            // 80% water, 20% metal during tutorial
+            // 80% ice, 20% metal during tutorial
             if (Random.value < 0.8f)
                 debrisToSpawn = IceDebrisPrefabs[Random.Range(0, IceDebrisPrefabs.Length)];
             else
@@ -50,7 +55,12 @@ public class DebrisSpawner : MonoBehaviour
                 debrisToSpawn = metalDebrisPrefabs[Random.Range(0, metalDebrisPrefabs.Length)];
         }
 
-        Instantiate(debrisToSpawn, spawnPos, Random.rotation);
+        // Spawn the debris
+        GameObject spawnedDebris = Instantiate(debrisToSpawn, spawnPos, Random.rotation);
+
+        // ADD SIZE VARIATION HERE
+        float randomScale = Random.Range(minScale, maxScale);
+        spawnedDebris.transform.localScale = Vector3.one * randomScale;
     }
 
     public void EndTutorialMode()
@@ -58,3 +68,4 @@ public class DebrisSpawner : MonoBehaviour
         tutorialMode = false;
     }
 }
+

@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
@@ -15,8 +16,6 @@ public class PlayerController : MonoBehaviour
     [Header("Space Movement")]
     public float pushForce = 2f;
     public float tetherLength = 10f;
-    public float grabRange = 2f;
-    public float dampingFactor = 1f;
 
     [Header("Tether Retraction")]
     public float retractSpeed = 8f;
@@ -88,7 +87,6 @@ public class PlayerController : MonoBehaviour
         HandleSpaceMovement(); 
         HandleTetherLine();
         HandleRetraction();
-        CheckForDebris();
         HandleMouseLook();
     }
 
@@ -146,26 +144,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void CheckForDebris()
-    {
-        Collider[] nearbyDebris = Physics.OverlapSphere(transform.position, grabRange);
-
-        foreach (Collider debris in nearbyDebris)
-        {
-            if (debris.CompareTag("Debris"))
-            {
-                Debug.Log("caught debris");
-                CollectDebris(debris.gameObject);
-                break;
-            }
-        }
-    }
-
-    void CollectDebris(GameObject debris)
-    {
-        Debug.Log("Collected: " + debris.name + "!");
-        Destroy(debris);
-    }
 
     private void OnMove(InputAction.CallbackContext context)
     {

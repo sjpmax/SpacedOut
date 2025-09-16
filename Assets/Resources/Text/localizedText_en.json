@@ -2,31 +2,43 @@
   "items": [
     {
       "key": "tutorial_awakening",
-      "value": "Oh hey, you're awake! Welcome to your new worst nightmare."
+      "value": "Oh hey, you're awake! (smaller text) [Loading Human Flattery program] I got bored of being out here alone and you meat sacks are oh so interesting. How are you? Great thank you."
+    },
+    {
+      "key": "tutorial_awakening_2",
+      "value": "I woke you because something incredible has happened. It's been 10 years since the incident and finally we have ventured upon something... breath taking! No... Breath MAKING!"
+    },
+    {
+      "key": "tutorial_awakening_3",
+      "value": "I thawed you from (color change) [CONDITION: Meat Popsicle] because I have found a way to keep you alive and unfortunately, I need your help."
+    },
+    {
+      "key": "tutorial_awakening_4",
+      "value": "These blue/white chunks have started showing up. First it was one or two a day. now we're hitting 100s a day! I have thawed and analyzed them to be water."
     },
     {
       "key": "tutorial_oxygen_explanation",
-      "value": "You'll notice your oxygen is running low. Thanks to me, I found water! Blue floating globs - probability 0.00000000000007676% repeating..."
+      "value": "You'll notice your oxygen is running low. I can extract oxygen from the chunks! I don't know where these chunks are coming from but, while your'e awake, you can fix my solar panel."
     },
     {
-      "key": "tutorial_water_instructions",
-      "value": "I'm boring you, aren't I? Point is: jump off and grab blue water globs for oxygen. Don't die!"
+      "key": "tutorial_ice_instructions",
+      "value": "I'm boring you, aren't I? Point is: jump off and grab blue ice chunks. My thermal processor converts them to oxygen. Don't die!"
     },
     {
-      "key": "tutorial_first_water",
-      "value": "Excellent! You're not completely hopeless. Keep going!"
+      "key": "tutorial_first_ice",
+      "value": "Excellent! You're not completely hopeless. Keep collecting ice!"
     },
     {
-      "key": "tutorial_second_water",
-      "value": "Two down! One more and you'll understand the concept."
+      "key": "tutorial_second_ice",
+      "value": "Two down! One more ice chunk and you'll understand the concept."
     },
     {
       "key": "tutorial_complete",
-      "value": "Well done! You've grasped the basics. Now we need something more sustainable than my brilliant water-finding skills."
+      "value": "Well done! You've grasped the basics. Now we need something more sustainable than manually collecting space ice."
     },
     {
       "key": "warning_low_oxygen",
-      "value": "60 seconds left! Those blue globs aren't going to collect themselves!"
+      "value": "60 seconds left! Those ice chunks aren't going to collect themselves!"
     },
     {
       "key": "warning_critical_oxygen",
@@ -37,8 +49,16 @@
       "value": "Well, that was predictable. You're dead. Try again?"
     },
     {
-      "key": "water_collected",
-      "value": "Water collected! +30 seconds of not dying."
+      "key": "ice_collected_small",
+      "value": "Tiny ice chunk processed! +10 seconds. Better than nothing, I suppose."
+    },
+    {
+      "key": "ice_collected_medium",
+      "value": "Ice chunk processed! +30 seconds of not dying."
+    },
+    {
+      "key": "ice_collected_large",
+      "value": "Massive ice chunk! +60 seconds of sweet, sweet oxygen!"
     }
   ]
 }

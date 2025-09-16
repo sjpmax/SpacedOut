@@ -27,6 +27,7 @@ public class LocalizationManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            LoadLocalizedText("en"); // MOVE HERE from Start()
         }
         else
         {
@@ -35,10 +36,7 @@ public class LocalizationManager : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        LoadLocalizedText("en"); // Default to English
-    }
+    // Remove Start() method since we moved loading to Awake()
 
     public void LoadLocalizedText(string languageCode)
     {
@@ -55,6 +53,12 @@ public class LocalizationManager : MonoBehaviour
             {
                 localizedText.Add(localizationData.items[i].key, localizationData.items[i].value);
             }
+
+            Debug.Log($"Loaded {localizationData.items.Length} localization entries");
+        }
+        else
+        {
+            Debug.LogError($"Could not load localization file: {filePath}");
         }
     }
 
@@ -63,6 +67,9 @@ public class LocalizationManager : MonoBehaviour
         if (localizedText != null && localizedText.ContainsKey(key))
             return localizedText[key];
         else
+        {
+            Debug.LogWarning($"Missing localization key: {key}");
             return missingTextString;
+        }
     }
 }

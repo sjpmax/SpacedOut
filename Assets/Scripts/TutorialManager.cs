@@ -4,19 +4,21 @@ public class TutorialManager : MonoBehaviour
 {
     public static TutorialManager Instance;
 
-    [Header("Tutorial State")]
-    public TutorialPhase currentPhase = TutorialPhase.Awakening;
-    public int waterGlobsCollected = 0;
-    public int waterGlobsNeeded = 3;
-
-    private bool hasShownLowOxygenWarning = false;
+    [Header("Tutorial Components")]
+    public DebrisGatheringTutorial debrisTutorial;
+    public CraftingTutorial craftingTutorial;
+    public BuildingTutorial buildingTutorial;
 
     public enum TutorialPhase
     {
         Awakening,
-        LearningWater,
+        DebrisGathering,
+        BasicCrafting,
+        ShipBuilding,
         Completed
     }
+
+    public TutorialPhase currentPhase = TutorialPhase.Awakening;
 
     void Awake()
     {
@@ -25,58 +27,37 @@ public class TutorialManager : MonoBehaviour
 
     void Start()
     {
-        StartTutorial();
+        StartAwakeningSequence();
     }
 
-    void StartTutorial()
+    void StartAwakeningSequence()
     {
+
+        Debug.Log("Awakening");
         DialogueManager.Instance.ShowDorkMessage("tutorial_awakening", 4f);
-        Invoke("ShowOxygenExplanation", 5f);
+        Debug.Log("Awakening sentence over");
+        Invoke("StartDebrisGatheringTutorial", 5f);
     }
 
-    void ShowOxygenExplanation()
+    void StartDebrisGatheringTutorial()
     {
-        DialogueManager.Instance.ShowDorkMessage("tutorial_oxygen_explanation", 6f);
-        Invoke("ShowWaterInstructions", 7f);
+        currentPhase = TutorialPhase.DebrisGathering;
+        if (debrisTutorial != null)
+            debrisTutorial.StartTutorial();
     }
 
-    void ShowWaterInstructions()
+    public void OnDebrisGatheringComplete()
     {
-        DialogueManager.Instance.ShowDorkMessage("tutorial_water_instructions", 4f);
-        currentPhase = TutorialPhase.LearningWater;
-    }
-
-    public void OnWaterCollected()
-    {
-        waterGlobsCollected++;
-
-        if (currentPhase == TutorialPhase.LearningWater)
-        {
-            if (waterGlobsCollected == 1)
-                DialogueManager.Instance.ShowDorkMessage("tutorial_first_water", 3f);
-            else if (waterGlobsCollected == 2)
-                DialogueManager.Instance.ShowDorkMessage("tutorial_second_water", 3f);
-            else if (waterGlobsCollected >= waterGlobsNeeded)
-                CompleteTutorial();
-        }
-    }
-
-    void CompleteTutorial()
-    {
-        currentPhase = TutorialPhase.Completed;
-        DialogueManager.Instance.ShowDorkMessage("tutorial_complete", 5f);
+        currentPhase = TutorialPhase.BasicCrafting;
+        DialogueManager.Instance.ShowDorkMessage("tutorial_debris_complete", 4f);
+        // Start next tutorial phase
     }
 
     public void OnLowOxygen(float remaining)
     {
-        if (remaining <= 60 && !hasShownLowOxygenWarning)
+        if (currentPhase == TutorialPhase.DebrisGathering && debrisTutorial != null)
         {
-            DialogueManager.Instance.ShowDorkMessage("warning_low_oxygen", 3f);
-            hasShownLowOxygenWarning = true;
-        }
-        else if (remaining <= 30)
-        {
-            DialogueManager.Instance.ShowDorkMessage("warning_critical_oxygen", 2f);
+            debrisTutorial.OnLowOxygen(remaining);
         }
     }
 }
