@@ -492,8 +492,8 @@ MonoBehaviour:
   maxOxygen: 120
   currentOxygen: 0
   oxygenDrainRate: 1
-  oxygenBar: {fileID: 0}
-  oxygenText: {fileID: 0}
+  oxygenBar: {fileID: 147423535}
+  oxygenText: {fileID: 343591514}
 --- !u!4 &329022502
 Transform:
   m_ObjectHideFlags: 0
@@ -859,6 +859,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 351746716}
   m_CullTransparentMesh: 1
+--- !u!1 &354751174
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 354751176}
+  - component: {fileID: 354751175}
+  m_Layer: 0
+  m_Name: DebrisGatheringTutorial
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &354751175
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 354751174}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c892b4cc701b46f40979cb95b0357ca2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DebrisGatheringTutorial
+  iceChunksCollected: 0
+  iceChunksNeeded: 3
+--- !u!4 &354751176
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 354751174}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 183.2995, y: 0, z: 1624.1427}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &391632011
 GameObject:
   m_ObjectHideFlags: 0
@@ -1097,6 +1143,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 554953224}
   m_CullTransparentMesh: 1
+--- !u!1 &599435651
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 599435653}
+  - component: {fileID: 599435652}
+  m_Layer: 0
+  m_Name: CraftingTutorial
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &599435652
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 599435651}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 972ae7073e37a68439a43fff830405bd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CraftingTutorial
+--- !u!4 &599435653
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 599435651}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 183.2995, y: 0, z: 1624.1427}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &684868899
 GameObject:
   m_ObjectHideFlags: 0
@@ -1267,6 +1357,50 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlatformMover
   speed: 20
+--- !u!1 &741079787
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 741079789}
+  - component: {fileID: 741079788}
+  m_Layer: 0
+  m_Name: BuildingTutorial
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &741079788
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 741079787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1562c57bb63ee4b44950c5944a2f6e84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BuildingTutorial
+--- !u!4 &741079789
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 741079787}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 183.2995, y: 0, z: 1624.1427}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &745267250
 GameObject:
   m_ObjectHideFlags: 0
@@ -1296,9 +1430,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a84d1c56de512ad43b201aaee8001c2e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialManager
+  debrisTutorial: {fileID: 354751175}
+  craftingTutorial: {fileID: 599435652}
+  buildingTutorial: {fileID: 741079788}
   currentPhase: 0
-  waterGlobsCollected: 0
-  waterGlobsNeeded: 3
 --- !u!4 &745267252
 Transform:
   m_ObjectHideFlags: 0
@@ -1470,7 +1605,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 0.8584906, g: 0.45839056, b: 0, a: 1}
+  m_fontColor: {r: 1, g: 0, b: 0.16212654, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1659,8 +1794,6 @@ MonoBehaviour:
   verticalLookLimit: 80
   pushForce: 2
   tetherLength: 10
-  grabRange: 2
-  dampingFactor: 0.98
   retractSpeed: 8
 --- !u!136 &841245316
 CapsuleCollider:
@@ -1982,6 +2115,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DialogueManager
   dialogueText: {fileID: 785948854}
+  typewriterSound: {fileID: 0}
+  defaultTypeSpeed: 0.05
+  fastTypeSpeed: 0.02
+  slowTypeSpeed: 0.1
+  skipOnClick: 1
+  typewriterClips: []
+  audioVolume: 0.5
 --- !u!4 &1199498924
 Transform:
   m_ObjectHideFlags: 0
@@ -2119,11 +2259,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 600c6de8240661442846f0ff2a6cf6d6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  debrisPrefab: {fileID: 5374336460266781189, guid: e916c9b5d7a76fe48a18f5740bf1622c, type: 3}
+  IceDebrisPrefabs:
+  - {fileID: 5374336460266781189, guid: e916c9b5d7a76fe48a18f5740bf1622c, type: 3}
+  metalDebrisPrefabs:
+  - {fileID: 5374336460266781189, guid: 10491cb79749a2b4798a325cbf832dc3, type: 3}
   spawnDistance: 50
   spawnInterval: 2
   horizontalRange: 15
   verticalRange: 10
+  minScale: 0.5
+  maxScale: 1.5
+  tutorialMode: 1
 --- !u!4 &1600060264
 Transform:
   m_ObjectHideFlags: 0
@@ -2426,3 +2572,6 @@ SceneRoots:
   - {fileID: 745267252}
   - {fileID: 1524163594}
   - {fileID: 1233389939}
+  - {fileID: 741079789}
+  - {fileID: 599435653}
+  - {fileID: 354751176}

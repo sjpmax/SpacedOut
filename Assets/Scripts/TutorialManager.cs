@@ -34,9 +34,9 @@ public class TutorialManager : MonoBehaviour
     {
 
         Debug.Log("Awakening");
-        DialogueManager.Instance.ShowDorkMessage("tutorial_awakening", 4f);
+        DialogueManager.Instance.ShowDorkMessage("tutorial_awakening", 15f);
         Debug.Log("Awakening sentence over");
-        Invoke("StartDebrisGatheringTutorial", 5f);
+        Invoke("StartDebrisGatheringTutorial", 15f);
     }
 
     void StartDebrisGatheringTutorial()
