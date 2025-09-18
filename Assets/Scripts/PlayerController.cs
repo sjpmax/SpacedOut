@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
+using TMPro;
 
 public class PlayerController : MonoBehaviour
 {
@@ -19,6 +20,9 @@ public class PlayerController : MonoBehaviour
 
     [Header("Tether Retraction")]
     public float retractSpeed = 8f;
+
+    [Header("Speed Display")]
+    public TextMeshProUGUI speedDisplay;
 
     private PlayerInputActions inputActions;
     private Vector2 moveInput;
@@ -88,6 +92,12 @@ public class PlayerController : MonoBehaviour
         HandleTetherLine();
         HandleRetraction();
         HandleMouseLook();
+
+        if (speedDisplay != null)
+        {
+            float currentSpeed = velocity.magnitude;
+            speedDisplay.text = $"Speed: {currentSpeed:F1}";
+        }
     }
 
     void HandleSpaceMovement()
@@ -194,11 +204,13 @@ public class PlayerController : MonoBehaviour
             {
                 // VERTICAL: W/S = Up/Down, A/D = Left/Right
                 jumpDirection = new Vector3(moveInput.x, moveInput.y, 0).normalized;
+                Debug.Log($"Vertical input - moveInput: {moveInput}, jumpDirection: {jumpDirection}"); // ADD THIS
             }
             else
             {
                 // HORIZONTAL: W/S = Forward/Back, A/D = Left/Right  
                 jumpDirection = new Vector3(moveInput.x, 0, moveInput.y).normalized;
+                Debug.Log($"Horizontal input - moveInput: {moveInput}, jumpDirection: {jumpDirection}"); // ADD THIS
             }
         }
         else
@@ -206,7 +218,6 @@ public class PlayerController : MonoBehaviour
             jumpDirection = Vector3.forward;
         }
 
-        Debug.Log($"Jump direction: {jumpDirection}, magnitude: {jumpDirection.magnitude}");
         return jumpDirection;
     }
 

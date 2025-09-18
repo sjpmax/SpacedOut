@@ -52,7 +52,11 @@ public class ResourceManager : MonoBehaviour
             oxygenBar.value = currentOxygen / maxOxygen;
 
         if (oxygenText != null)
-            oxygenText.text = $"{currentOxygen:F0}s";
+        {
+            string newText = $"{currentOxygen:F0}s";
+            Debug.Log($"UpdateUI: currentOxygen={currentOxygen}, setting text to '{newText}', current display='{oxygenText.text}'");
+            oxygenText.text = newText;
+        }
     }
 
     void GameOver()

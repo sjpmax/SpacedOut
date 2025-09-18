@@ -79,7 +79,7 @@ public class DebrisCollector : MonoBehaviour
         // Show feedback message
         if (DialogueManager.Instance != null)
         {
-            DialogueManager.Instance.ShowDorkMessage($"ice_collected_{sizeName}", 2f);
+            DialogueManager.Instance.ShowDorkMessage($"ice_collected_{sizeName}",5f);
         }
 
         Debug.Log($"Collected {sizeName} ice chunk! +{oxygenGained} seconds oxygen");

@@ -16,7 +16,7 @@ public class DebrisSpawner : MonoBehaviour
 
     [Header("Size Variation")]
     public float minScale = 0.5f;  // Smallest debris
-    public float maxScale = 1.5f;  // Largest debris
+    public float maxScale = 3f;  // Largest debris
 
     [Header("Tutorial Settings")]
     public bool tutorialMode = true; // Spawn mostly ice during tutorial

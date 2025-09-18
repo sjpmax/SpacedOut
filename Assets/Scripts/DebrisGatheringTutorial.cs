@@ -12,13 +12,13 @@ public class DebrisGatheringTutorial : MonoBehaviour
     public void StartTutorial()
     {
         tutorialActive = true;
-        DialogueManager.Instance.ShowDorkMessage("tutorial_oxygen_explanation", 6f);
-        Invoke("ShowIceInstructions", 7f);
+        DialogueManager.Instance.ShowDorkMessage("tutorial_oxygen_explanation", 15f);
+        Invoke("ShowIceInstructions", 15f);
     }
 
     void ShowIceInstructions()
     {
-        DialogueManager.Instance.ShowDorkMessage("tutorial_ice_instructions", 4f);
+        DialogueManager.Instance.ShowDorkMessage("tutorial_ice_instructions", 15f);
     }
 
     public void OnIceCollected()
