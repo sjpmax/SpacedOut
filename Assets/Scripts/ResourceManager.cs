@@ -54,7 +54,7 @@ public class ResourceManager : MonoBehaviour
         if (oxygenText != null)
         {
             string newText = $"{currentOxygen:F0}s";
-            Debug.Log($"UpdateUI: currentOxygen={currentOxygen}, setting text to '{newText}', current display='{oxygenText.text}'");
+    
             oxygenText.text = newText;
         }
     }

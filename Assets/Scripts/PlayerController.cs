@@ -16,7 +16,8 @@ public class PlayerController : MonoBehaviour
 
     [Header("Space Movement")]
     public float pushForce = 2f;
-    public float tetherLength = 10f;
+    public float jumpTetherLength = 6f;
+    public float walkTetherLength = 1.5f;
 
     [Header("Tether Retraction")]
     public float retractSpeed = 8f;
@@ -92,6 +93,7 @@ public class PlayerController : MonoBehaviour
         HandleTetherLine();
         HandleRetraction();
         HandleMouseLook();
+        HandlePlatformMoving();
 
         if (speedDisplay != null)
         {
@@ -102,38 +104,49 @@ public class PlayerController : MonoBehaviour
 
     void HandleSpaceMovement()
     {
-        if (isRetracting) return;
+        Vector3 platformPosition = new Vector3(0, 1f, 0);
+        float distanceFromPlatform = Vector3.Distance(transform.localPosition, platformPosition);
 
-        // Apply momentum (coast after jumping) - NO DAMPING IN SPACE!
-        Vector3 newPos = transform.localPosition + velocity * Time.deltaTime;
-
-        // Tether constraint
-        float distanceFromPlatform = newPos.magnitude;
-        if (distanceFromPlatform > tetherLength)
+        // Only apply space movement when floating (far from platform)
+        if (distanceFromPlatform >= 1f && !isRetracting)
         {
-            newPos = newPos.normalized * tetherLength;
-            velocity = Vector3.zero; // Stop when you hit tether limit
+            // Apply momentum (coast after jumping) - NO DAMPING IN SPACE!
+            Vector3 newPos = transform.localPosition + velocity * Time.deltaTime;
+
+            // Tether constraint
+            float distanceFromPlatformAfterMove = newPos.magnitude;
+            if (distanceFromPlatformAfterMove > jumpTetherLength)
+            {
+                newPos = newPos.normalized * jumpTetherLength;
+                velocity = Vector3.zero; // Stop when you hit tether limit
+            }
+
+            transform.localPosition = newPos;
         }
-
-        transform.localPosition = newPos;
-
-        // NO DAMPING IN SPACE! Remove this line entirely:
-        // velocity *= dampingFactor;
     }
-
     void HandleTetherLine()
     {
-        tetherLine.SetPosition(0, transform.position);
-        tetherLine.SetPosition(1, platform.position);
+        Vector3 platformPosition = new Vector3(0, 1f, 0);
+        float distanceFromPlatform = Vector3.Distance(transform.localPosition, platformPosition);
 
-        // Visual feedback
-        float tension = transform.localPosition.magnitude / tetherLength;
-        if (tension > 0.8f)
-            tetherLine.material.color = Color.red;
-        else if (tension > 0.5f)
-            tetherLine.material.color = Color.yellow;
+        if (distanceFromPlatform >= 1.5f) // Only show tether when floating
+        {
+            tetherLine.enabled = true;
+            tetherLine.SetPosition(0, transform.position);
+            tetherLine.SetPosition(1, platform.position);
+
+            float tension = transform.localPosition.magnitude / jumpTetherLength;
+            if (tension > 0.8f)
+                tetherLine.material.color = Color.red;
+            else if (tension > 0.5f)
+                tetherLine.material.color = Color.yellow;
+            else
+                tetherLine.material.color = Color.white;
+        }
         else
-            tetherLine.material.color = Color.white;
+        {
+            tetherLine.enabled = false; // Hide tether when on platform
+        }
     }
 
     void HandleRetraction()
@@ -151,6 +164,25 @@ public class PlayerController : MonoBehaviour
             }
 
             transform.localPosition = newPos;
+        }
+    }
+    void HandlePlatformMoving()
+    {
+        Vector3 platformPosition = new Vector3(0, 1f, 0);
+        float distanceFromPlatform = Vector3.Distance(transform.localPosition, platformPosition);
+
+        if (distanceFromPlatform < 1f) // Close to platform = WALKING
+        {
+            if (moveInput.magnitude > 0.1f)
+            {
+                Vector3 walkDirection = new Vector3(moveInput.x, 0, moveInput.y).normalized;
+                float walkSpeed = 2f;
+
+                Vector3 newPosition = transform.localPosition + walkDirection * walkSpeed * Time.deltaTime;
+
+                // REMOVE THE TETHER CHECK - walk freely on platform
+                transform.localPosition = newPosition;
+            }
         }
     }
 
@@ -179,8 +211,11 @@ public class PlayerController : MonoBehaviour
         if (distanceFromPlatform < 1f) // Close to platform = JUMP
         {
             Vector3 jumpDirection = CalculateJumpDirection();
-            velocity = jumpDirection * pushForce;
+            float currentPushForce = pushForce;
+            if (isShiftHeld)
+                currentPushForce *= 3f; // 30% boost for vertical mode
 
+            velocity = jumpDirection * currentPushForce;
             // Debug output to show jump direction
             string directionText = isShiftHeld ? "VERTICAL" : "HORIZONTAL";
             Debug.Log($"Jumped off platform! Direction: {directionText} - {jumpDirection}");
@@ -203,8 +238,23 @@ public class PlayerController : MonoBehaviour
             if (isShiftHeld)
             {
                 // VERTICAL: W/S = Up/Down, A/D = Left/Right
-                jumpDirection = new Vector3(moveInput.x, moveInput.y, 0).normalized;
-                Debug.Log($"Vertical input - moveInput: {moveInput}, jumpDirection: {jumpDirection}"); // ADD THIS
+                float verticalInput = moveInput.y;
+                float horizontalInput = moveInput.x;
+
+
+                // ADD THIS: Boost upward movement
+                if (verticalInput > 0) // Moving up
+                {
+                    verticalInput *= 1.5f; // 50% speed boost for upward
+
+                    jumpDirection = new Vector3(horizontalInput, verticalInput, 0).normalized;
+                    Debug.Log($"Vertical input - moveInput: {moveInput}, jumpDirection: {jumpDirection}"); // ADD THIS
+
+                }
+                else {
+
+                    jumpDirection = new Vector3(horizontalInput, 0, 0).normalized;
+                }
             }
             else
             {
