@@ -93,7 +93,7 @@ public class PlayerController : MonoBehaviour
         HandleTetherLine();
         HandleRetraction();
         HandleMouseLook();
-        HandlePlatformMoving();
+        HandleWalking();
 
         if (speedDisplay != null)
         {
@@ -166,7 +166,7 @@ public class PlayerController : MonoBehaviour
             transform.localPosition = newPos;
         }
     }
-    void HandlePlatformMoving()
+    void HandleWalking()
     {
         Vector3 platformPosition = new Vector3(0, 1f, 0);
         float distanceFromPlatform = Vector3.Distance(transform.localPosition, platformPosition);
@@ -175,12 +175,11 @@ public class PlayerController : MonoBehaviour
         {
             if (moveInput.magnitude > 0.1f)
             {
-                Vector3 walkDirection = new Vector3(moveInput.x, 0, moveInput.y).normalized;
+                // Use camera-relative movement instead of world-space
+                Vector3 cameraRelativeDirection = GetCameraRelativeMovement3D(moveInput, false);
                 float walkSpeed = 2f;
 
-                Vector3 newPosition = transform.localPosition + walkDirection * walkSpeed * Time.deltaTime;
-
-                // REMOVE THE TETHER CHECK - walk freely on platform
+                Vector3 newPosition = transform.localPosition + cameraRelativeDirection * walkSpeed * Time.deltaTime;
                 transform.localPosition = newPosition;
             }
         }
@@ -237,35 +236,19 @@ public class PlayerController : MonoBehaviour
         {
             if (isShiftHeld)
             {
-                // VERTICAL: W/S = Up/Down, A/D = Left/Right
-                float verticalInput = moveInput.y;
-                float horizontalInput = moveInput.x;
-
-
-                // ADD THIS: Boost upward movement
-                if (verticalInput > 0) // Moving up
-                {
-                    verticalInput *= 1.5f; // 50% speed boost for upward
-
-                    jumpDirection = new Vector3(horizontalInput, verticalInput, 0).normalized;
-                    Debug.Log($"Vertical input - moveInput: {moveInput}, jumpDirection: {jumpDirection}"); // ADD THIS
-
-                }
-                else {
-
-                    jumpDirection = new Vector3(horizontalInput, 0, 0).normalized;
-                }
+                // VERTICAL: Use camera-relative 3D movement
+                jumpDirection = GetCameraRelativeMovement3D(moveInput, true);
             }
             else
             {
-                // HORIZONTAL: W/S = Forward/Back, A/D = Left/Right  
-                jumpDirection = new Vector3(moveInput.x, 0, moveInput.y).normalized;
-                Debug.Log($"Horizontal input - moveInput: {moveInput}, jumpDirection: {jumpDirection}"); // ADD THIS
+                // HORIZONTAL: Use camera-relative horizontal movement
+                jumpDirection = GetCameraRelativeMovement3D(moveInput, false);
             }
         }
         else
         {
-            jumpDirection = Vector3.forward;
+            // No input: jump forward relative to camera
+            jumpDirection = playerCamera.transform.forward;
         }
 
         return jumpDirection;
@@ -306,5 +289,27 @@ public class PlayerController : MonoBehaviour
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
+    }
+
+    private Vector3 GetCameraRelativeMovement3D(Vector2 input, bool useVerticalInput = false)
+    {
+        Vector3 cameraForward = playerCamera.transform.forward;
+        Vector3 cameraRight = playerCamera.transform.right;
+        Vector3 cameraUp = playerCamera.transform.up;
+
+        // Horizontal movement (W/S = forward/back, A/D = left/right)
+        Vector3 horizontalMovement = (cameraForward * input.y) + (cameraRight * input.x);
+
+        // Optional: Add vertical movement if shift is held
+        Vector3 verticalMovement = Vector3.zero;
+        if (useVerticalInput && isShiftHeld)
+        {
+            // Convert forward/back input to up/down when shift is held
+            verticalMovement = cameraUp * input.y;
+            // Keep only left/right for horizontal
+            horizontalMovement = cameraRight * input.x;
+        }
+
+        return (horizontalMovement + verticalMovement).normalized;
     }
 }
