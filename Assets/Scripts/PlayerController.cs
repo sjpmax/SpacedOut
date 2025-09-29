@@ -220,8 +220,7 @@ public class PlayerController : MonoBehaviour
         if (speedDisplay != null)
         {
             string status = isOnPlatform ? "ON PLATFORM" : "FLOATING";
-            string ctrlStatus = isCtrlHeld ? "CTRL: ON" : "CTRL: OFF"; // Add this
-            speedDisplay.text = $"Speed: {velocity.magnitude:F1}\n{status}\n{ctrlStatus}";
+            speedDisplay.text = $"Speed: {velocity.magnitude:F1}\n{status}";
         }
     }
 
@@ -251,73 +250,56 @@ public class PlayerController : MonoBehaviour
 
     private void OnCtrlPressed(InputAction.CallbackContext context)
     {
-        Debug.Log("CTRL PRESSED!"); // Add this
         isCtrlHeld = true;
     }
 
     private void OnCtrlReleased(InputAction.CallbackContext context)
     {
-        Debug.Log("CTRL RELEASED!"); // Add this
         isCtrlHeld = false;
     }
 
     private void OnSpacePressed(InputAction.CallbackContext context)
     {
-        Debug.Log($"=== SPACE PRESSED ===");
-        Debug.Log($"isOnPlatform: {isOnPlatform}");
-        Debug.Log($"isRetracting: {isRetracting}");
-        Debug.Log($"isCtrlHeld: {isCtrlHeld}");
-        Debug.Log($"moveInput: {moveInput}");
-        Debug.Log($"transform.localPosition: {transform.localPosition}");
-
         if (isOnPlatform && !isRetracting)
         {
+            // Jump off platform
             Vector3 jumpDirection = CalculateJumpDirection();
-            Debug.Log($"Jump direction calculated: {jumpDirection}");
-
             velocity = jumpDirection * pushForce;
-            Debug.Log($"Velocity set to: {velocity}");
 
             string directionText = isCtrlHeld ? "VERTICAL" : "HORIZONTAL";
             Debug.Log($"Jumped! {directionText} - {jumpDirection}");
         }
         else if (!isOnPlatform && !isRetracting)
         {
+            // Start retracting
             isRetracting = true;
             velocity = Vector3.zero;
             Debug.Log("Retracting!");
-        }
-        else
-        {
-            Debug.Log("No action taken - conditions not met");
         }
     }
 
     private Vector3 CalculateJumpDirection()
     {
-        Debug.Log($"CalculateJumpDirection - moveInput: {moveInput}, isCtrlHeld: {isCtrlHeld}");
-
         if (moveInput.magnitude > 0.1f)
         {
             if (isCtrlHeld)
             {
-                Vector3 result = (transform.right * moveInput.x + transform.up * moveInput.y).normalized;
-                Debug.Log($"Ctrl jump: {result}");
-                return result;
+                // VERTICAL: W/S = Up/Down, A/D = Left/Right
+                return (transform.right * moveInput.x + transform.up * moveInput.y).normalized;
             }
             else
             {
-                Vector3 result = (transform.forward * moveInput.y + transform.right * moveInput.x).normalized;
-                Debug.Log($"Normal jump: {result}");
-                return result;
+                // HORIZONTAL: W/S = Forward/Back, A/D = Left/Right
+                return (transform.forward * moveInput.y + transform.right * moveInput.x).normalized;
             }
         }
         else
         {
-            Debug.Log($"No input jump: transform.forward = {transform.forward}");
+            // No input - jump forward
             return transform.forward;
         }
     }
+
     private void OnLook(InputAction.CallbackContext context)
     {
         lookInput = context.ReadValue<Vector2>();
