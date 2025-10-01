@@ -27,7 +27,7 @@ public class DialogueManager : MonoBehaviour
     private Coroutine currentTypewriter;
     private bool isTyping = false;
     private string currentFullText = "";
-    private PlayerInputActions inputActions;
+    private InputSystem_Actions inputActions;
 
     // Rich text effect patterns
     private Dictionary<string, System.Func<string, string>> textEffects;
@@ -41,7 +41,7 @@ public class DialogueManager : MonoBehaviour
             InitializeTextEffects();
 
             // Initialize input actions
-            inputActions = new PlayerInputActions();
+            inputActions = new InputSystem_Actions();
         }
         else
         {

@@ -1,321 +1,204 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.InputSystem;
-using TMPro;
 
 public class PlayerController : MonoBehaviour
 {
-    [Header("First Person Camera")]
-    public float mouseSensitivity = 5f;
-    public float verticalLookLimit = 80f;
+    public float moveSpeed = 8f;
+    public float lookSensitivity = .2f;
+    public bool magnetBootsOn = true;
+    public float bootAttractionForce = 400f;
+    public float AttractionCheckDistance = 5f;
+    public float rotationAlignmentSpeed = 30f;
 
-    [Header("Movement")]
-    public float walkSpeed = 3f;
-    public float pushForce = 5f;
-    public float tetherLength = 10f;
+    // NEW: Stability settings
+    public float groundNormalSmoothSpeed = 40f; // Smooth out normal changes
+    public float surfaceChangeThreshold = 0.85f; // Lower = more sensitive to changes
 
-    [Header("Tether Retraction")]
-    public float retractSpeed = 8f;
-
-    [Header("Speed Display")]
-    public TextMeshProUGUI speedDisplay;
-
-    private PlayerInputActions inputActions;
+    private InputSystem_Actions inputActions;
     private Vector2 moveInput;
     private Vector2 lookInput;
-    private bool isCtrlHeld = false;
-    private LineRenderer tetherLine;
-    private Transform platform;
-    private bool isRetracting = false;
+    private Rigidbody rb;
     private Camera playerCamera;
-    private float verticalRotation = 0f;
-
-    private Vector3 velocity;
-    private bool isOnPlatform = true;
+    private float cameraPitch = 0f;
+    private float cameraYaw = 0f;
+    private bool isGrounded = true;
+    private Vector3 groundNormal = Vector3.up;
+    private Vector3 lastGroundNormal = Vector3.up;
+    private Vector3 targetGroundNormal = Vector3.up; // NEW: Target to smooth towards
+    private Vector3 smoothedGroundNormal = Vector3.up; // NEW: Smoothed normal
 
     void Awake()
     {
-        inputActions = new PlayerInputActions();
-        platform = transform.parent;
-
-        Rigidbody rb = GetComponent<Rigidbody>();
-        if (rb != null)
-        {
-            rb.useGravity = false;
-            rb.linearDamping = 0f;
-            rb.angularDamping = 0f;
-            rb.constraints = RigidbodyConstraints.FreezeRotation;
-        }
-
-        SetupTetherLine();
-        SetupCamera();
-    }
-
-    void SetupTetherLine()
-    {
-        tetherLine = gameObject.AddComponent<LineRenderer>();
-        tetherLine.material = new Material(Shader.Find("Sprites/Default"));
-        tetherLine.startWidth = 0.05f;
-        tetherLine.endWidth = 0.05f;
-        tetherLine.positionCount = 2;
-        tetherLine.enabled = true;
-    }
-
-    void SetupCamera()
-    {
+        inputActions = new InputSystem_Actions();
+        rb = GetComponent<Rigidbody>();
         playerCamera = GetComponentInChildren<Camera>();
-        if (playerCamera != null)
-        {
-            playerCamera.transform.localRotation = Quaternion.identity;
-        }
-        verticalRotation = 0f;
+         inputActions.Player.Move.performed += ctx => {
+        moveInput = ctx.ReadValue<Vector2>();
+        Debug.Log($"Move input: {moveInput}"); // Add this
+    };
+
+        //inputActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
+        inputActions.Player.Move.canceled += ctx => moveInput = Vector2.zero;
+        inputActions.Player.Look.performed += ctx => lookInput = ctx.ReadValue<Vector2>();
+        inputActions.Player.Look.canceled += ctx => lookInput = Vector2.zero;
+        inputActions.Player.ToggleGravityBoots.performed += ctx => ToggleGravityBoots();
+
         Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-    }
-
-    void OnEnable()
-    {
-        inputActions.Player.Move.performed += OnMove;
-        inputActions.Player.Move.canceled += OnMove;
-        inputActions.Player.Retract.performed += OnSpacePressed;
-        inputActions.Player.VerticalModifier.performed += OnCtrlPressed;
-        inputActions.Player.VerticalModifier.canceled += OnCtrlReleased;
-        inputActions.Player.Look.performed += OnLook;
-        inputActions.Player.Look.canceled += OnLook;
-        inputActions.Player.Escape.performed += OnEscapePressed;
-        inputActions.Enable();
-    }
-
-    void OnDisable()
-    {
-        inputActions.Disable();
     }
 
     void Update()
     {
-        UpdatePlatformStatus();
-        HandleMovement();
-        HandleTetherLine();
-        HandleRetraction();
-        HandleMouseLook();
-        UpdateSpeedDisplay();
+        float mouseX = lookInput.x * lookSensitivity;
+        float mouseY = lookInput.y * lookSensitivity;
+
+        cameraYaw += mouseX;
+        cameraPitch -= mouseY;
+        cameraPitch = Mathf.Clamp(cameraPitch, -90f, 90f);
+
+        Quaternion localYaw = Quaternion.AngleAxis(cameraYaw, Vector3.up);
+        Quaternion localPitch = Quaternion.AngleAxis(cameraPitch, Vector3.right);
+
+        playerCamera.transform.localRotation = localYaw * localPitch;
     }
 
-    void UpdatePlatformStatus()
+    void FixedUpdate()
     {
-        Vector3 platformCenter = new Vector3(0, 1.5f, 0);
-        float distanceFromCenter = Vector3.Distance(transform.localPosition, platformCenter);
-        isOnPlatform = distanceFromCenter < 1.5f;
-    }
+        CheckGround();
 
-    void HandleMovement()
-    {
-        if (isRetracting) return;
+        // NEW: Smooth the ground normal changes
+        SmoothGroundNormal();
 
-        if (isOnPlatform && velocity.magnitude < 0.1f)  // ← Add velocity check
+        AlignToSurface();
+
+        // Calculate alignment once for both force and movement
+        float alignmentDot = Vector3.Dot(transform.up, smoothedGroundNormal);
+
+        if (magnetBootsOn && isGrounded && alignmentDot > 0.5f)
         {
-            // Walking on platform (only if not actively jumping)
-            HandleWalking();
+            rb.AddForce(-transform.up * bootAttractionForce, ForceMode.Acceleration);
+        }
+
+        Vector3 cameraForward = playerCamera.transform.forward;
+        Vector3 cameraRight = playerCamera.transform.right;
+
+        Vector3 forward = Vector3.ProjectOnPlane(cameraForward, transform.up).normalized;
+        Vector3 right = Vector3.ProjectOnPlane(cameraRight, transform.up).normalized;
+
+        if (alignmentDot > 0.5f) // Use same threshold for consistency
+        {
+            Vector3 move = right * moveInput.x + forward * moveInput.y;
+            rb.MovePosition(rb.position + moveSpeed * Time.fixedDeltaTime * move);
+        }
+    }
+
+    private void OnEnable()
+    {
+        inputActions.Enable();
+    }
+
+    private void OnDisable()
+    {
+        inputActions.Disable();
+    }
+
+    private void ToggleGravityBoots()
+    {
+        magnetBootsOn = !magnetBootsOn;
+    }
+
+    private void CheckGround()
+    {
+        RaycastHit bestHit = default;
+        bool foundGround = false;
+        float closestDistance = float.MaxValue;
+
+        // Check all directions and find the CLOSEST hit
+        TryFindClosestHit(-transform.up, ref bestHit, ref foundGround, ref closestDistance);
+        TryFindClosestHit(transform.forward, ref bestHit, ref foundGround, ref closestDistance);
+        TryFindClosestHit(-transform.forward, ref bestHit, ref foundGround, ref closestDistance);
+        TryFindClosestHit(transform.right, ref bestHit, ref foundGround, ref closestDistance);
+        TryFindClosestHit(-transform.right, ref bestHit, ref foundGround, ref closestDistance);
+
+        // Diagonal checks
+        TryFindClosestHit((transform.forward - transform.up).normalized, ref bestHit, ref foundGround, ref closestDistance);
+        TryFindClosestHit((-transform.forward - transform.up).normalized, ref bestHit, ref foundGround, ref closestDistance);
+        TryFindClosestHit((transform.right - transform.up).normalized, ref bestHit, ref foundGround, ref closestDistance);
+        TryFindClosestHit((-transform.right - transform.up).normalized, ref bestHit, ref foundGround, ref closestDistance);
+
+        if (foundGround)
+        {
+            isGrounded = true;
+            targetGroundNormal = bestHit.normal;
+            Debug.DrawRay(transform.position, bestHit.normal * 2f, Color.red);
         }
         else
         {
-            // Floating in space (includes right after jump)
-            HandleSpaceMovement();
+            isGrounded = false;
         }
     }
 
-    void HandleWalking()
+    private void TryFindClosestHit(Vector3 direction, ref RaycastHit bestHit, ref bool foundGround, ref float closestDistance)
     {
-        // Disable walking when Ctrl is held (for vertical jump mode)
-        if (isCtrlHeld) return;
-
-        if (moveInput.magnitude > 0.1f)
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, direction, out hit, AttractionCheckDistance))
         {
-            // Camera-relative walking
-            Vector3 forward = playerCamera.transform.forward;
-            Vector3 right = playerCamera.transform.right;
-
-            // Flatten to platform plane
-            forward.y = 0;
-            right.y = 0;
-            forward.Normalize();
-            right.Normalize();
-
-            Vector3 walkDirection = (forward * moveInput.y + right * moveInput.x).normalized;
-            Vector3 newPosition = transform.localPosition + walkDirection * walkSpeed * Time.deltaTime;
-
-            transform.localPosition = newPosition;
-        }
-    }
-
-    void HandleSpaceMovement()
-    {
-        // Apply momentum - coast after jumping
-        Vector3 newPos = transform.localPosition + velocity * Time.deltaTime;
-
-        // Tether constraint
-        float distanceFromPlatform = newPos.magnitude;
-        if (distanceFromPlatform > tetherLength)
-        {
-            // Soft constraint - slow down near edge
-            Vector3 pullDirection = -newPos.normalized;
-            velocity += pullDirection * 5f * Time.deltaTime;
-
-            // Hard limit
-            if (distanceFromPlatform > tetherLength * 1.05f)
+            if (hit.collider.gameObject.layer == LayerMask.NameToLayer("Ground"))
             {
-                newPos = newPos.normalized * tetherLength;
-                velocity *= 0.5f;
+                if (hit.distance < closestDistance)
+                {
+                    closestDistance = hit.distance;
+                    bestHit = hit;
+                    foundGround = true;
+                }
             }
         }
-
-        transform.localPosition = newPos;
     }
 
-    void HandleTetherLine()
+    // NEW: Smooth out ground normal changes to prevent jittering
+    private void SmoothGroundNormal()
     {
-        if (!isOnPlatform)
+        if (!isGrounded)
         {
-            tetherLine.enabled = true;
-            tetherLine.SetPosition(0, transform.position);
-            tetherLine.SetPosition(1, platform.position);
+            smoothedGroundNormal = Vector3.up;
+            return;
+        }
 
-            // Visual feedback
-            float tension = transform.localPosition.magnitude / tetherLength;
-            if (tension > 0.8f)
-                tetherLine.material.color = Color.red;
-            else if (tension > 0.5f)
-                tetherLine.material.color = Color.yellow;
-            else
-                tetherLine.material.color = Color.white;
-        }
-        else
-        {
-            tetherLine.enabled = false;
-        }
+        // Smoothly interpolate toward the target normal
+        smoothedGroundNormal = Vector3.Slerp(
+            smoothedGroundNormal,
+            targetGroundNormal,
+            Time.fixedDeltaTime * groundNormalSmoothSpeed
+        );
+
+        smoothedGroundNormal.Normalize();
+        groundNormal = smoothedGroundNormal;
     }
 
-    void HandleRetraction()
+    private void AlignToSurface()
     {
-        if (!isRetracting) return;
+        if (!magnetBootsOn || !isGrounded) return;
 
-        Vector3 targetPos = new Vector3(0, 1.5f, 0);
-        Vector3 directionToPlatform = (targetPos - transform.localPosition).normalized;
-        Vector3 newPos = transform.localPosition + directionToPlatform * retractSpeed * Time.deltaTime;
-
-        if (Vector3.Distance(newPos, targetPos) < 0.5f)
+        // Check if surface changed significantly
+        float normalDot = Vector3.Dot(lastGroundNormal, smoothedGroundNormal);
+        if (normalDot < surfaceChangeThreshold)
         {
-            transform.localPosition = targetPos;
-            isRetracting = false;
-            velocity = Vector3.zero;
-            Debug.Log("Back on platform!");
+            // Smooth camera reset instead of instant
+            float resetSpeed = 5f;
+            cameraYaw = Mathf.Lerp(cameraYaw, 0f, Time.fixedDeltaTime * resetSpeed);
+            cameraPitch = Mathf.Lerp(cameraPitch, 0f, Time.fixedDeltaTime * resetSpeed);
+
+            lastGroundNormal = smoothedGroundNormal;
         }
-        else
-        {
-            transform.localPosition = newPos;
-        }
-    }
 
-    void UpdateSpeedDisplay()
-    {
-        if (speedDisplay != null)
-        {
-            string status = isOnPlatform ? "ON PLATFORM" : "FLOATING";
-            speedDisplay.text = $"Speed: {velocity.magnitude:F1}\n{status}";
-        }
-    }
+        // Calculate target rotation using smoothed normal
+        Quaternion targetRotation = Quaternion.FromToRotation(transform.up, smoothedGroundNormal) * transform.rotation;
 
-    void HandleMouseLook()
-    {
-        if (Time.time < 0.1f) return;
-
-        float mouseX = lookInput.x * mouseSensitivity * Time.deltaTime;
-        float mouseY = lookInput.y * mouseSensitivity * Time.deltaTime;
-
-        transform.Rotate(0, mouseX, 0);
-
-        verticalRotation -= mouseY;
-        verticalRotation = Mathf.Clamp(verticalRotation, -verticalLookLimit, verticalLookLimit);
-
-        if (playerCamera != null)
-        {
-            playerCamera.transform.localRotation = Quaternion.Euler(verticalRotation, 0, 0);
-        }
-    }
-
-    // Input handlers
-    private void OnMove(InputAction.CallbackContext context)
-    {
-        moveInput = context.ReadValue<Vector2>();
-    }
-
-    private void OnCtrlPressed(InputAction.CallbackContext context)
-    {
-        isCtrlHeld = true;
-    }
-
-    private void OnCtrlReleased(InputAction.CallbackContext context)
-    {
-        isCtrlHeld = false;
-    }
-
-    private void OnSpacePressed(InputAction.CallbackContext context)
-    {
-        if (isOnPlatform && !isRetracting)
-        {
-            // Jump off platform
-            Vector3 jumpDirection = CalculateJumpDirection();
-            velocity = jumpDirection * pushForce;
-
-            string directionText = isCtrlHeld ? "VERTICAL" : "HORIZONTAL";
-            Debug.Log($"Jumped! {directionText} - {jumpDirection}");
-        }
-        else if (!isOnPlatform && !isRetracting)
-        {
-            // Start retracting
-            isRetracting = true;
-            velocity = Vector3.zero;
-            Debug.Log("Retracting!");
-        }
-    }
-
-    private Vector3 CalculateJumpDirection()
-    {
-        if (moveInput.magnitude > 0.1f)
-        {
-            if (isCtrlHeld)
-            {
-                // VERTICAL: W/S = Up/Down, A/D = Left/Right
-                return (transform.right * moveInput.x + transform.up * moveInput.y).normalized;
-            }
-            else
-            {
-                // HORIZONTAL: W/S = Forward/Back, A/D = Left/Right
-                return (transform.forward * moveInput.y + transform.right * moveInput.x).normalized;
-            }
-        }
-        else
-        {
-            // No input - jump forward
-            return transform.forward;
-        }
-    }
-
-    private void OnLook(InputAction.CallbackContext context)
-    {
-        lookInput = context.ReadValue<Vector2>();
-    }
-
-    private void OnEscapePressed(InputAction.CallbackContext context)
-    {
-        if (Cursor.lockState == CursorLockMode.Locked)
-        {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
-        else
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
+        // Smoothly rotate toward target
+        transform.rotation = Quaternion.Slerp(
+            transform.rotation,
+            targetRotation,
+            Time.fixedDeltaTime * rotationAlignmentSpeed
+        );
     }
 }

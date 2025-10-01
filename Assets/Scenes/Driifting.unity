@@ -1331,7 +1331,7 @@ GameObject:
   - component: {fileID: 684868903}
   - component: {fileID: 684868902}
   - component: {fileID: 684868908}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Platform
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1886,6 +1886,7 @@ GameObject:
   - component: {fileID: 841245316}
   - component: {fileID: 841245315}
   - component: {fileID: 841245319}
+  - component: {fileID: 841245320}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1921,12 +1922,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 74cb0a06fbef1a147aae829bc2b061f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  mouseSensitivity: 5
-  verticalLookLimit: 80
-  pushForce: 2
-  tetherLength: 10
-  retractSpeed: 8
-  speedDisplay: {fileID: 1211823972}
+  moveSpeed: 8
+  lookSensitivity: 0.2
+  magnetBootsOn: 1
+  bootAttractionForce: 400
+  AttractionCheckDistance: 5
+  rotationAlignmentSpeed: 30
+  groundNormalSmoothSpeed: 40
+  surfaceChangeThreshold: 0.85
 --- !u!136 &841245316
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -2024,6 +2027,33 @@ MonoBehaviour:
     m_Bits: 4294967295
   collectSound: {fileID: 0}
   collectEffect: {fileID: 0}
+--- !u!54 &841245320
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 841245313}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 112
+  m_CollisionDetection: 0
 --- !u!1 &846605413
 GameObject:
   m_ObjectHideFlags: 0
