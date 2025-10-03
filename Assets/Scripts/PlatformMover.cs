@@ -1,11 +1,18 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class PlatformMover : MonoBehaviour
 {
-    public float speed = 20f; // mph converted to units/second
+    public float speed = 20f;
+    private Rigidbody rb;
 
-    void Update()
+    void Start()
     {
-        transform.Translate(Vector3.forward * speed * Time.deltaTime);
+        rb = GetComponent<Rigidbody>();
+        rb.isKinematic = true; // ← KEY!
+    }
+
+    void FixedUpdate()
+    {
+        rb.MovePosition(rb.position + Vector3.forward * speed * Time.fixedDeltaTime);
     }
 }

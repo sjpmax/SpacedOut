@@ -33,12 +33,9 @@ public class PlayerController : MonoBehaviour
         inputActions = new InputSystem_Actions();
         rb = GetComponent<Rigidbody>();
         playerCamera = GetComponentInChildren<Camera>();
-         inputActions.Player.Move.performed += ctx => {
-        moveInput = ctx.ReadValue<Vector2>();
-        Debug.Log($"Move input: {moveInput}"); // Add this
-    };
+        
 
-        //inputActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
+        inputActions.Player.Move.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
         inputActions.Player.Move.canceled += ctx => moveInput = Vector2.zero;
         inputActions.Player.Look.performed += ctx => lookInput = ctx.ReadValue<Vector2>();
         inputActions.Player.Look.canceled += ctx => lookInput = Vector2.zero;
