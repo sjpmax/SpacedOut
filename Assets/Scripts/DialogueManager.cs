@@ -3,7 +3,6 @@ using UnityEngine.InputSystem;
 using TMPro;
 using System.Collections;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
 
 public class DialogueManager : MonoBehaviour
 {
@@ -11,41 +10,44 @@ public class DialogueManager : MonoBehaviour
 
     [Header("UI References")]
     public TextMeshProUGUI dialogueText;
-    public AudioSource typewriterSound;
+
+    [Header("Terminal Style Settings")]
+    public Color normalColor = new Color(0f, 1f, 0f); // Green
+    public Color warningColor = new Color(1f, 0f, 0f); // Red
+    public Color systemColor = new Color(0f, 0.8f, 1f); // Cyan
+    [Range(0f, 1f)]
+    public float outlineWidth = 0.2f;
+    public Color outlineColor = Color.black;
 
     [Header("Typewriter Settings")]
-    public float defaultTypeSpeed = 0.05f;
-    public float fastTypeSpeed = 0.02f;
-    public float slowTypeSpeed = 0.1f;
+    public float defaultTypeSpeed = 0.03f;
     public bool skipOnClick = true;
 
-    [Header("Audio Settings")]
-    public AudioClip[] typewriterClips;
-    public float audioVolume = 0.5f;
-
-    private float messageTimer = 0f;
+    private InputSystem_Actions inputActions;
+    private string currentFullText;
     private Coroutine currentTypewriter;
     private bool isTyping = false;
-    private string currentFullText = "";
-    private InputSystem_Actions inputActions;
-
-    // Rich text effect patterns
-    private Dictionary<string, System.Func<string, string>> textEffects;
+    private float messageTimer = 0f;
 
     void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
-            InitializeTextEffects();
-
-            // Initialize input actions
-            inputActions = new InputSystem_Actions();
         }
         else
         {
             Destroy(gameObject);
+        }
+
+        inputActions = new InputSystem_Actions();
+
+        // Set up text outline
+        if (dialogueText != null)
+        {
+            dialogueText.outlineWidth = outlineWidth;
+            dialogueText.outlineColor = outlineColor;
+            dialogueText.fontStyle = FontStyles.Normal; // No bold, italic, etc.
         }
     }
 
@@ -54,15 +56,14 @@ public class DialogueManager : MonoBehaviour
         if (inputActions != null)
         {
             inputActions.Enable();
-            // Check if SkipDialogue action exists, fallback to right mouse if not
+            // Try to hook up skip dialogue if action exists
             try
             {
                 inputActions.Player.SkipDialogue.performed += OnSkipDialogue;
             }
             catch
             {
-                // Fallback: use Mouse class directly for right mouse button
-                Debug.LogWarning("SkipDialogue action not found in InputActions. Add it for better integration.");
+                Debug.LogWarning("SkipDialogue action not found in InputSystem_Actions.");
             }
         }
     }
@@ -95,7 +96,7 @@ public class DialogueManager : MonoBehaviour
                 ClearMessage();
         }
 
-        // Fallback input handling if SkipDialogue action doesn't exist
+        // Fallback: Right-click to skip typing
         if (isTyping && skipOnClick && Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame)
         {
             SkipTypewriter();
@@ -110,181 +111,60 @@ public class DialogueManager : MonoBehaviour
         }
     }
 
-    void InitializeTextEffects()
-    {
-        textEffects = new Dictionary<string, System.Func<string, string>>
-        {
-            {"[SARCASM]", text => $"<i><color=#FF6B6B>{text}</color></i>"},
-            {"[EXCITEMENT]", text => $"<color=#FFD93D><size=120%>{text}</size></color>"},
-            {"[WHISPER]", text => $"<alpha=#80><size=80%>{text}</size></alpha>"},
-            {"[SYSTEM]", text => $"<color=#00FF00><font=\"LiberationSans SDF\">{text}</font></color>"},
-            {"[WARNING]", text => $"<color=#FF0000><b>{text}</b></color>"},
-            {"[LOADING]", text => $"<color=#888888>{text}...</color>"},
-            {"[MEMORY]", text => $"<color=#9B59B6><i>{text}</i></color>"},
-            {"[HIGHLIGHT]", text => $"<mark=#FFFF00AA>{text}</mark>"}
-        };
-    }
-
+    // Show DORK message using localization key
     public void ShowDorkMessage(string messageKey, float duration = 3f)
     {
         string localizedText = LocalizationManager.Instance.GetText(messageKey);
-        ShowMessage($"DORK: {localizedText}", duration);
+        ShowMessage($"> DORK: {localizedText}", duration, MessageType.Normal);
     }
 
-    public void ShowMessage(string message, float duration = 3f, float typeSpeed = -1f)
+    // Show message with type (Normal, Warning, System)
+    public void ShowMessage(string message, float duration = 3f, MessageType type = MessageType.Normal)
     {
         if (currentTypewriter != null)
         {
             StopCoroutine(currentTypewriter);
         }
 
-        string processedText = ProcessTextEffects(message);
-        currentFullText = processedText;
-        messageTimer = duration;
-
-        float speed = typeSpeed > 0 ? typeSpeed : defaultTypeSpeed;
-        currentTypewriter = StartCoroutine(TypewriterEffect(processedText, speed));
-    }
-
-    string ProcessTextEffects(string text)
-    {
-        string processed = text;
-
-        // Process custom markup tags
-        foreach (var effect in textEffects)
+        // Apply color based on type
+        Color textColor = type switch
         {
-            string openTag = Regex.Escape(effect.Key);
-            string closeTag = Regex.Escape(effect.Key.Replace("[", "[/"));
-            string pattern = $@"{openTag}(.*?){closeTag}";
-            processed = Regex.Replace(processed, pattern, match => effect.Value(match.Groups[1].Value));
-        }
+            MessageType.Warning => warningColor,
+            MessageType.System => systemColor,
+            _ => normalColor
+        };
 
-        // Process speed modifiers - use custom format to avoid TextMeshPro conflicts
-        processed = processed.Replace("[FAST]", "{{SPEED:fast}}");
-        processed = processed.Replace("[/FAST]", "{{SPEED:normal}}");
-        processed = processed.Replace("[SLOW]", "{{SPEED:slow}}");
-        processed = processed.Replace("[/SLOW]", "{{SPEED:normal}}");
+        // Set the vertex color directly
+        dialogueText.color = textColor;
 
-        // Process pauses - use custom format to avoid TextMeshPro conflicts
-        processed = processed.Replace("[PAUSE]", "{{PAUSE:1}}");
-        processed = processed.Replace("[PAUSE_LONG]", "{{PAUSE:2}}");
+        currentFullText = message;
+        messageTimer = 0f; // Don't start timer yet
 
-        return processed;
+        currentTypewriter = StartCoroutine(TypewriterEffect(message, defaultTypeSpeed, duration));
     }
 
-    IEnumerator TypewriterEffect(string fullText, float baseSpeed)
+    IEnumerator TypewriterEffect(string text, float speed, float displayDuration)
     {
         isTyping = true;
-        dialogueText.text = "";
+        dialogueText.text = text;
 
-        string visibleText = "";
-        float currentSpeed = baseSpeed;
+        // CRITICAL: Force TextMeshPro to update
+        dialogueText.ForceMeshUpdate();
 
-        // Strip rich text tags for character counting but keep them for display
-        string plainText = Regex.Replace(fullText, "<.*?>", "");
-        int plainTextIndex = 0;
+        dialogueText.maxVisibleCharacters = 0;
 
-        for (int i = 0; i < fullText.Length; i++)
+        int totalChars = dialogueText.textInfo.characterCount;
+
+        for (int i = 0; i <= totalChars; i++)
         {
-            char currentChar = fullText[i];
-
-            // Handle our custom pause tags
-            if (currentChar == '{' && i + 1 < fullText.Length && fullText[i + 1] == '{')
-            {
-                // Find the end of our custom tag
-                int tagEnd = fullText.IndexOf("}}", i);
-                if (tagEnd != -1)
-                {
-                    string customTag = fullText.Substring(i + 2, tagEnd - i - 2); // Skip {{ and }}
-
-                    // Process pause tags
-                    if (customTag.StartsWith("PAUSE:"))
-                    {
-                        float pauseTime = 1f;
-                        var match = Regex.Match(customTag, @"PAUSE:(\d+\.?\d*)");
-                        if (match.Success)
-                            float.TryParse(match.Groups[1].Value, out pauseTime);
-
-                        dialogueText.text = visibleText;
-                        yield return new WaitForSeconds(pauseTime);
-                    }
-
-                    // Process speed tags
-                    if (customTag.StartsWith("SPEED:"))
-                    {
-                        string speedValue = customTag.Substring(6); // Remove "SPEED:"
-                        currentSpeed = speedValue switch
-                        {
-                            "fast" => fastTypeSpeed,
-                            "slow" => slowTypeSpeed,
-                            "normal" => baseSpeed,
-                            _ => baseSpeed
-                        };
-                    }
-
-                    i = tagEnd + 1; // Skip to end of custom tag
-                    continue;
-                }
-            }
-
-            // Handle rich text tags
-            if (currentChar == '<')
-            {
-                // Find the end of the tag
-                int tagEnd = fullText.IndexOf('>', i);
-                if (tagEnd != -1)
-                {
-                    string tag = fullText.Substring(i, tagEnd - i + 1);
-                    visibleText += tag;
-
-                    // Process speed modification tags
-                    if (tag.Contains("speed=fast"))
-                        currentSpeed = fastTypeSpeed;
-                    else if (tag.Contains("speed=slow"))
-                        currentSpeed = slowTypeSpeed;
-                    else if (tag.Contains("speed=normal"))
-                        currentSpeed = baseSpeed;
-
-                    // Process pause tags - look for our custom format
-                    if (tag.Contains("PAUSE:"))
-                    {
-                        float pauseTime = 1f;
-                        var match = Regex.Match(tag, @"PAUSE:(\d+\.?\d*)");
-                        if (match.Success)
-                            float.TryParse(match.Groups[1].Value, out pauseTime);
-
-                        dialogueText.text = visibleText;
-                        yield return new WaitForSeconds(pauseTime);
-                    }
-
-                    i = tagEnd; // Skip to end of tag
-                    continue;
-                }
-            }
-
-            visibleText += currentChar;
-            dialogueText.text = visibleText;
-
-            // Only play sound and wait for actual characters (not tags)
-            if (!char.IsWhiteSpace(currentChar))
-            {
-                PlayTypewriterSound();
-                plainTextIndex++;
-            }
-
-            yield return new WaitForSeconds(currentSpeed);
+            dialogueText.maxVisibleCharacters = i;
+            yield return new WaitForSeconds(speed);
         }
 
         isTyping = false;
-    }
 
-    void PlayTypewriterSound()
-    {
-        if (typewriterSound != null && typewriterClips != null && typewriterClips.Length > 0)
-        {
-            AudioClip randomClip = typewriterClips[Random.Range(0, typewriterClips.Length)];
-            typewriterSound.PlayOneShot(randomClip, audioVolume);
-        }
+        // NOW start the display timer after typing is complete
+        messageTimer = displayDuration;
     }
 
     void SkipTypewriter()
@@ -292,37 +172,22 @@ public class DialogueManager : MonoBehaviour
         if (currentTypewriter != null)
         {
             StopCoroutine(currentTypewriter);
-            // Clean up custom tags when skipping
-            string cleanedText = CleanCustomTags(currentFullText);
-            dialogueText.text = cleanedText;
-            isTyping = false;
-        }
-    }
-
-    string CleanCustomTags(string text)
-    {
-        // Remove all custom tags like {{PAUSE:1}}, {{SPEED:fast}}, etc.
-        string cleaned = Regex.Replace(text, @"\{\{[^}]*\}\}", "");
-        return cleaned;
-    }
-
-    public void ClearMessage()
-    {
-        if (currentTypewriter != null)
-        {
-            StopCoroutine(currentTypewriter);
         }
 
+        dialogueText.maxVisibleCharacters = 99999;
+        isTyping = false;
+    }
+
+    void ClearMessage()
+    {
         if (dialogueText != null)
             dialogueText.text = "";
-
-        isTyping = false;
-        currentFullText = "";
     }
 
-    // Public method to add custom text effects at runtime
-    public void AddTextEffect(string tag, System.Func<string, string> effect)
+    public enum MessageType
     {
-        textEffects[tag] = effect;
+        Normal,   // Green/Amber
+        Warning,  // Red
+        System    // Cyan
     }
 }

@@ -76,10 +76,13 @@ public class DebrisCollector : MonoBehaviour
             TutorialManager.Instance.debrisTutorial.OnIceCollected();
         }
 
-        // Show feedback message
-        if (DialogueManager.Instance != null)
+        // Show feedback message ONLY if not in awakening phase
+        if (DialogueManager.Instance != null && TutorialManager.Instance != null)
         {
-            DialogueManager.Instance.ShowDorkMessage($"ice_collected_{sizeName}",5f);
+            if (!TutorialManager.Instance.IsInAwakening)
+            {
+                DialogueManager.Instance.ShowDorkMessage($"ice_collected_{sizeName}", 5f);
+            }
         }
 
         Debug.Log($"Collected {sizeName} ice chunk! +{oxygenGained} seconds oxygen");

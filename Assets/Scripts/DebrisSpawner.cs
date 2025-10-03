@@ -29,8 +29,13 @@ public class DebrisSpawner : MonoBehaviour
         InvokeRepeating("SpawnDebris", 1f, spawnInterval);
     }
 
+
+
     void SpawnDebris()
     {
+        if (TutorialManager.Instance != null && TutorialManager.Instance.IsInAwakening)
+            return;
+
         Vector3 spawnPos = platform.position + Vector3.forward * spawnDistance;
         spawnPos.x += Random.Range(-horizontalRange, horizontalRange);
         spawnPos.y += Random.Range(-verticalRange, verticalRange);

@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class TutorialManager : MonoBehaviour
 {
@@ -8,6 +9,10 @@ public class TutorialManager : MonoBehaviour
     public DebrisGatheringTutorial debrisTutorial;
     public CraftingTutorial craftingTutorial;
     public BuildingTutorial buildingTutorial;
+    public bool IsInAwakening = true;
+
+    [Header("Timing Settings")]
+    public float initialDelay = 2f; // Wait 2 seconds before first message
 
     public enum TutorialPhase
     {
@@ -27,16 +32,48 @@ public class TutorialManager : MonoBehaviour
 
     void Start()
     {
-        StartAwakeningSequence();
+        StartCoroutine(AwakeningSequence());
     }
 
-    void StartAwakeningSequence()
+    IEnumerator AwakeningSequence()
     {
+        Debug.Log("Starting awakening sequence...");
 
-        Debug.Log("Awakening");
-        DialogueManager.Instance.ShowDorkMessage("tutorial_awakening", 15f);
-        Debug.Log("Awakening sentence over");
-        Invoke("StartDebrisGatheringTutorial", 15f);
+        // Wait for initial delay to ensure everything is loaded
+        yield return new WaitForSeconds(initialDelay);
+
+        // Check if DialogueManager is ready
+        if (DialogueManager.Instance == null)
+        {
+            Debug.LogError("DialogueManager.Instance is NULL!");
+            yield break;
+        }
+
+        // Show all awakening messages in sequence
+        Debug.Log("Message 1: Oh hey, you're awake!");
+        DialogueManager.Instance.ShowDorkMessage("tutorial_awakening", 10f);
+        yield return new WaitForSeconds(9f); // Wait for typing + display
+
+        Debug.Log("Message 2: Something incredible!");
+        DialogueManager.Instance.ShowDorkMessage("tutorial_awakening_2", 10f);
+        yield return new WaitForSeconds(9f);
+
+        Debug.Log("Message 3: Meat Popsicle");
+        DialogueManager.Instance.ShowDorkMessage("tutorial_awakening_3", 10f);
+        yield return new WaitForSeconds(8f);
+
+        Debug.Log("Message 4: Blue chunks");
+        DialogueManager.Instance.ShowDorkMessage("tutorial_awakening_4", 10f);
+        yield return new WaitForSeconds(9f);
+        
+        Debug.Log("Message 5: Magnet Boots");
+        DialogueManager.Instance.ShowDorkMessage("tutorial_awakening_5", 10f);
+        yield return new WaitForSeconds(9f);
+
+        IsInAwakening = false;
+
+        Debug.Log("Starting debris gathering tutorial");
+        StartDebrisGatheringTutorial();
     }
 
     void StartDebrisGatheringTutorial()
